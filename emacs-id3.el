@@ -4,7 +4,7 @@
 ;;
 ;; Author: Taichi Uemura <t.uemura00@gmail.com>
 ;; License: GPL3
-;; Time-stamp: <2016-02-15 05:26:55 tuemura>
+;; Time-stamp: <2016-02-15 05:55:21 tuemura>
 ;;
 ;;; Code:
 
@@ -113,6 +113,13 @@
                  (buffer-string))))
       (switch-to-buffer output-buffer)
       (insert str))))
+
+(define-derived-mode id3-edit-mode text-mode "ID3"
+  "Major mode to edit ID3 tag.")
+
+(dolist (v '(("C-c C-c" . id3-write-with-mid3v2)
+             ("C-c C-k" . quit-window)))
+  (define-key id3-edit-mode-map (kbd (car v)) (cdr v)))
 
 (provide 'emacs-id3)
 

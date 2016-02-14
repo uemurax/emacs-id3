@@ -4,7 +4,7 @@
 ;;
 ;; Author: Taichi Uemura <t.uemura00@gmail.com>
 ;; License: GPL3
-;; Time-stamp: <2016-02-15 06:42:45 tuemura>
+;; Time-stamp: <2016-02-15 08:07:33 tuemura>
 ;;
 ;;; Code:
 
@@ -45,7 +45,7 @@
       (setq start (point))
       (move-end-of-line nil)
       (setq end (point)))
-    (and (equal (buffer-substring start (+ start len)) id3-filename-prefix)
+    (and (equal (buffer-substring start (min (point-max) (+ start len))) id3-filename-prefix)
          (buffer-substring (+ start len) end))))
 
 (defun id3-parse (&optional start end)
@@ -116,6 +116,10 @@
       (with-current-buffer output-buffer
         (insert str)))))
 
+;; ----------------------------------------------------------------
+;; ID3 edit mode
+;; ----------------------------------------------------------------
+
 (define-derived-mode id3-edit-mode text-mode "ID3"
   "Major mode to edit ID3 tag.")
 
@@ -124,8 +128,24 @@
   (id3-write-with-mid3v2)
   (quit-window))
 
+(defun id3-next-file (n)
+  (interactive "p")
+  (when (id3-filename-at-point)
+    (move-end-of-line nil))
+  (re-search-forward (concat "^" id3-filename-prefix) nil 'noerror n)
+  (move-beginning-of-line nil))
+
+(defun id3-previous-file (n)
+  (interactive "p")
+  (when (id3-filename-at-point)
+    (move-beginning-of-line nil))
+  (re-search-backward (concat "^" id3-filename-prefix) nil 'noerror n)
+  (move-beginning-of-line nil))
+
 (dolist (v '(("C-c C-c" . id3-write-with-mid3v2-and-quit)
-             ("C-c C-k" . quit-window)))
+             ("C-c C-k" . quit-window)
+             ("C-c C-n" . id3-next-file)
+             ("C-c C-p" . id3-previous-file)))
   (define-key id3-edit-mode-map (kbd (car v)) (cdr v)))
 
 (provide 'emacs-id3)

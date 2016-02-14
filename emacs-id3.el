@@ -4,7 +4,7 @@
 ;;
 ;; Author: Taichi Uemura <t.uemura00@gmail.com>
 ;; License: GPL3
-;; Time-stamp: <2016-02-15 06:07:21 tuemura>
+;; Time-stamp: <2016-02-15 06:42:45 tuemura>
 ;;
 ;;; Code:
 
@@ -16,7 +16,6 @@
   :group 'id3
   :type 'char)
 
-;;;###autoload
 (defun id3-frame-at-point (&optional point)
   "Return (KEY . VALUE) pair of ID3 frame at POINT."
   (let ((point (or point (point)))
@@ -98,9 +97,8 @@
   :type 'string)
 
 ;;;###autoload
-(defun id3-read-with-mid3v2 (file &optional output-buffer)
+(defun id3-read-with-mid3v2 (&optional output-buffer &rest files)
   "Read ID3 tag using `mid3v2'."
-  (interactive "fFind file: \nP")
   (let ((output-buffer (get-buffer-create
                         (cond ((or (stringp output-buffer)
                                    (bufferp output-buffer))
@@ -108,11 +106,15 @@
                               (output-buffer (current-buffer))
                               (t (format id3-mid3v2-buffer-name file))))))
     (let ((str (with-temp-buffer
-                 (shell-command (format "mid3v2 %S" file) t)
+                 (shell-command (concat "mid3v2 "
+                                        (mapconcat (lambda (file)
+                                                     (format "%S" file))
+                                                   files " "))
+                                t)
                  (delete-trailing-whitespace (point-min) (point-max))
                  (buffer-string))))
-      (switch-to-buffer output-buffer)
-      (insert str))))
+      (with-current-buffer output-buffer
+        (insert str)))))
 
 (define-derived-mode id3-edit-mode text-mode "ID3"
   "Major mode to edit ID3 tag.")
